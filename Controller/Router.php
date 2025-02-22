@@ -52,9 +52,14 @@ class Router implements RouterInterface
     {
         $identifier = trim($request->getPathInfo(), '/');
         $productId = $this->getIdBySku($identifier);
+
         if ($productId) {
-            $this->setRequestParam($request, $productId);
-            return $this->getActionForward($request);
+            $productUrl = $this->getProductUrlById($productId);
+
+            if ($productUrl) {
+                header("Location: " . $productUrl, true, 301);
+                exit;
+            }
         }
 
         return null;
@@ -101,5 +106,21 @@ class Router implements RouterInterface
     {
         return $this->productFactory->create()
             ->getIdBySku($sku);
+    }
+
+    /**
+     * Retrieve product URL by product ID
+     *
+     * @param int $productId
+     * @return string|null
+     */
+    private function getProductUrlById($productId)
+    {
+        try {
+            $product = $this->productFactory->create()->load($productId);
+            return $product->getProductUrl();
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }
